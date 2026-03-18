@@ -1,0 +1,74 @@
+/* Dashboard.css */
+.dashboard { padding: 24px 28px; }
+
+.db-topbar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+.db-search-wrap { flex: 1; position: relative; }
+.db-search { padding-left: 38px !important; }
+.db-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+
+.db-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 20px; }
+
+.db-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: .6;
+}
+.stat-card.p::after { background: var(--a2); }
+.stat-card.o::after { background: var(--a3); }
+.stat-card.w::after { background: var(--warn); }
+
+.sc-label { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.sc-val   { font-family: var(--mono); font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.sc-sub   { font-size: 11px; color: var(--muted); }
+
+.db-grid { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
+.db-panel { margin-bottom: 12px; }
+
+.live-item {
+  display: flex; gap: 9px; padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.live-item:last-child { border-bottom: none; }
+
+.skill-row { margin-bottom: 10px; }
+.skill-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.skill-bar  { height: 3px; background: var(--bg3); border-radius: 2px; }
+.skill-fill { height: 100%; border-radius: 2px; transition: width .8s ease; }
+
+.salary-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-bottom: 6px; }
+.s-bar {
+  flex: 1;
+  background: rgba(0,229,160,.12);
+  border-top: 2px solid var(--accent);
+  border-radius: 2px 2px 0 0;
+  cursor: pointer;
+  transition: background .15s;
+}
+.s-bar.active { background: rgba(0,229,160,.25); }
+.s-bar:hover  { background: rgba(0,229,160,.22); }
+.salary-lbls  { display: flex; justify-content: space-between; }
+
+.crawl-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.crawl-row:last-child { border-bottom: none; }

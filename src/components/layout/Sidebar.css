@@ -1,0 +1,103 @@
+/* ── Sidebar.css ── */
+.sidebar {
+  background: var(--bg1);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.logo-text {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.logo-text span { color: var(--text); }
+.logo-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sidebar-nav { padding: 10px 0; flex: 1; }
+
+.nav-section {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 10px 18px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+  font-size: 13px;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  width: 100%;
+  background: none;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  text-align: left;
+  font-family: var(--sans);
+}
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,.03); }
+.nav-item.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: rgba(0,229,160,.05);
+}
+
+.nav-icon  { font-size: 13px; width: 16px; text-align: center; flex-shrink: 0; }
+.nav-label { flex: 1; }
+
+.nav-badge {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.nav-logout { color: var(--muted); }
+.nav-logout:hover { color: var(--red); }
+
+.sidebar-stats {
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+.stat-row span:last-child { color: var(--accent); }
