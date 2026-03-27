@@ -1,43 +1,42 @@
-// ── src/components/layout/Sidebar.jsx ──
+// src/components/layout/Sidebar.jsx
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
 const NAV = [
   { section: 'Search' },
-  { to: '/dashboard',   icon: '⌕',  label: 'Job Search',    badge: '1.2M' },
-  { to: '/jobs',        icon: '⊞',  label: 'All Jobs Hub',  badge: '5,847', badgeColor: 'green' },
-  { to: '/matches',     icon: '⚡', label: 'AI Matches',    badge: '38',    badgeColor: 'purple' },
-  { to: '/saved',       icon: '◎',  label: 'Saved Searches' },
+  { to: '/dashboard', icon: '⌕',  label: 'Job Search'   },
+  { to: '/jobs',      icon: '⊞',  label: 'All Jobs Hub', badge: 'LIVE', badgeColor: 'green' },
+  { to: '/matches',   icon: '⚡', label: 'AI Matches'   },
+  { to: '/saved',     icon: '◎',  label: 'Saved Searches'},
 
   { section: 'By Level' },
-  { to: '/jobs?level=fresher', icon: '●', label: 'Fresher Jobs',  badge: '1,243' },
-  { to: '/jobs?level=intern',  icon: '●', label: 'Internships',   badge: '387',  badgeColor: 'purple' },
-  { to: '/jobs?level=mid',     icon: '●', label: 'Mid-Level',     badge: '2,814' },
-  { to: '/jobs?level=senior',  icon: '●', label: 'Senior / Lead', badge: '1,403', badgeColor: 'orange' },
-  { to: '/jobs?cat=govt',      icon: '●', label: 'Govt / PSU',    badge: '156',  badgeColor: 'red' },
+  { to: '/jobs?level=fresher', icon: '●', label: 'Fresher Jobs',  badge: '0–1yr' },
+  { to: '/jobs?level=intern',  icon: '●', label: 'Internships',   badge: 'PPO',  badgeColor: 'purple' },
+  { to: '/jobs?level=mid',     icon: '●', label: 'Mid-Level'      },
+  { to: '/jobs?level=senior',  icon: '●', label: 'Senior / Lead', badgeColor: 'orange' },
+  { to: '/jobs?cat=govt',      icon: '●', label: 'Govt / PSU',    badgeColor: 'red' },
 
   { section: 'Intelligence' },
-  { to: '/trends',   icon: '▲', label: 'Hiring Trends' },
-  { to: '/salary',   icon: '◈', label: 'Salary Intel' },
-  { to: '/companies',icon: '⬡', label: 'Company Watch' },
+  { to: '/trends',    icon: '▲', label: 'Hiring Trends' },
+  { to: '/salary',    icon: '◈', label: 'Salary Intel'  },
+  { to: '/companies', icon: '⬡', label: 'Company Watch' },
 
   { section: 'Account' },
-  { to: '/profile',      icon: '◉', label: 'My Profile' },
-  { to: '/applications', icon: '≡', label: 'Applications' },
+  { to: '/profile',       icon: '◉', label: 'My Profile'    },
+  { to: '/applications',  icon: '≡', label: 'Applications'  },
 ];
 
 const BADGE_COLORS = {
-  green:  { bg: 'var(--accent)', color: '#000' },
-  purple: { bg: 'var(--a2)',     color: '#fff' },
-  orange: { bg: 'var(--a3)',     color: '#fff' },
-  red:    { bg: 'var(--red)',    color: '#fff' },
-  default:{ bg: 'var(--accent)', color: '#000' },
+  green:  { background: 'var(--accent)', color: '#000' },
+  purple: { background: 'var(--a2)',     color: '#fff' },
+  orange: { background: 'var(--a3)',     color: '#fff' },
+  red:    { background: 'var(--red)',    color: '#fff' },
 };
 
 export default function Sidebar() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const navigate   = useNavigate();
 
   const handleLogout = async () => {
     await logout();
@@ -50,8 +49,7 @@ export default function Sidebar() {
       <div className="sidebar-logo">
         <div className="logo-text">Job<span>Hunt</span>AI</div>
         <div className="logo-sub">
-          <span className="live-dot" />
-          Live Intelligence
+          <span className="live-dot" /> Live Intelligence
         </div>
       </div>
 
@@ -69,10 +67,7 @@ export default function Sidebar() {
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>
               {item.badge && (
-                <span
-                  className="nav-badge"
-                  style={BADGE_COLORS[item.badgeColor || 'default']}
-                >
+                <span className="nav-badge" style={BADGE_COLORS[item.badgeColor] || BADGE_COLORS.green}>
                   {item.badge}
                 </span>
               )}
@@ -88,10 +83,9 @@ export default function Sidebar() {
 
       {/* Footer stats */}
       <div className="sidebar-stats">
-        <div className="stat-row"><span>Indexed jobs</span><span className="accent">1,247,843</span></div>
-        <div className="stat-row"><span>Last crawl</span><span className="accent">2m ago</span></div>
-        <div className="stat-row"><span>Sources active</span><span className="accent">14 / 16</span></div>
-        <div className="stat-row"><span>Search latency</span><span className="accent">87ms</span></div>
+        <div className="stat-row"><span>Sources</span><span>Remotive · Muse · More</span></div>
+        <div className="stat-row"><span>Backend</span><span style={{color:'var(--warn)'}}>Deploying soon</span></div>
+        <div className="stat-row"><span>Search</span><span>Live ✓</span></div>
       </div>
     </aside>
   );
