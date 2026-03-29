@@ -1,4 +1,4 @@
-/* ── JobCard.css ── */
+/* src/components/jobs/JobCard.css */
 .jcard {
   background: var(--bg1);
   border: 1px solid var(--line);
@@ -16,6 +16,7 @@
   border-color: var(--line2);
   background: var(--bg2);
   transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .jcard-body   { flex: 1; min-width: 0; }
@@ -26,16 +27,39 @@
   font-weight: 500;
   color: var(--text);
   margin-bottom: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.4;
 }
 .jcard-company {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--accent);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
 }
+
+/* Glassdoor row */
+.jcard-glassdoor {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 9px;
+  padding: 8px 10px;
+  background: var(--bg2);
+  border-radius: 5px;
+  border: 1px solid var(--line);
+}
+.gd-item {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.gd-icon { font-size: 11px; }
 
 .jcard-meta {
   display: flex;
@@ -53,7 +77,12 @@
 }
 .meta-item span { color: var(--text); }
 
-.jcard-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.jcard-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
 
 /* aside */
 .jcard-aside {
@@ -62,9 +91,11 @@
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
+  min-width: 64px;
 }
 .ai-ring {
-  width: 46px; height: 46px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -83,10 +114,11 @@
   font-size: 8px;
   letter-spacing: 1px;
   color: var(--muted);
+  text-align: center;
 }
 
 .apply-btn {
-  padding: 5px 12px;
+  padding: 6px 12px;
   border-radius: 4px;
   background: var(--accent);
   color: #000;
@@ -97,5 +129,7 @@
   cursor: pointer;
   transition: background .15s;
   white-space: nowrap;
+  width: 100%;
+  text-align: center;
 }
 .apply-btn:hover { background: #00c98a; }

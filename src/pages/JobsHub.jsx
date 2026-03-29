@@ -1,4 +1,4 @@
-// src/pages/JobsHub.jsx — Updated with REAL live jobs from APIs
+// src/pages/JobsHub.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { useFilters } from '../hooks/useFilters';
 import { fetchAllLiveJobs } from '../api/liveJobs';
@@ -6,36 +6,44 @@ import JobCard from '../components/jobs/JobCard';
 import FilterBar from '../components/jobs/FilterBar';
 import './JobsHub.css';
 
-const CATEGORIES = [
-  { key: 'all',     label: 'All Jobs',        count: null },
-  { key: 'fresher', label: '🟢 Freshers',     count: null },
-  { key: 'intern',  label: '🟣 Internships',  count: null },
-  { key: 'it',      label: '💻 IT / Software',count: null },
-  { key: 'data',    label: '🤖 Data / AI',    count: null },
-  { key: 'nonit',   label: '📊 Non-IT',       count: null },
-  { key: 'senior',  label: '🔶 Senior',       count: null },
+var CATEGORIES = [
+  { key: 'all',     label: 'All Jobs'       },
+  { key: 'fresher', label: 'Freshers'       },
+  { key: 'intern',  label: 'Internships'    },
+  { key: 'it',      label: 'IT / Software'  },
+  { key: 'data',    label: 'Data / AI'      },
+  { key: 'nonit',   label: 'Non-IT'         },
+  { key: 'govt',    label: 'Govt / PSU'     },
+  { key: 'senior',  label: 'Senior'         },
 ];
 
-const SOURCES = [
-  'RemoteOK','Jobicy','LinkedIn','Naukri',
-  'Indeed','Internshala','FreshersWorld','AngelList',
+var SOURCES_LIST = [
+  'Remotive','The Muse','Arbeitnow',
+  'Internshala','Sarkari Naukri',
+  'Adzuna India','NCS Portal',
 ];
 
 export default function JobsHub() {
-  const { filters, setFilter, toggleArrayFilter, reset, activeCount } = useFilters();
-  const [showFilters, setShowFilters] = useState(true);
-  const [allJobs,     setAllJobs]     = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [error,       setError]       = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [page,        setPage]        = useState(20);
+  var filterState    = useFilters();
+  var filters        = filterState.filters;
+  var setFilter      = filterState.setFilter;
+  var toggleArrayFilter = filterState.toggleArrayFilter;
+  var reset          = filterState.reset;
+  var activeCount    = filterState.activeCount;
 
-  // ── Fetch live jobs ──
-  const loadJobs = useCallback(async (q = '') => {
+  var [showFilters, setShowFilters] = useState(true);
+  var [allJobs,     setAllJobs]     = useState([]);
+  var [loading,     setLoading]     = useState(true);
+  var [error,       setError]       = useState('');
+  var [searchInput, setSearchInput] = useState('');
+  var [page,        setPage]        = useState(20);
+
+  var loadJobs = useCallback(async function(q) {
     setLoading(true);
     setError('');
+    setPage(20);
     try {
-      const jobs = await fetchAllLiveJobs(q);
+      var jobs = await fetchAllLiveJobs(q || '');
       setAllJobs(jobs);
     } catch (e) {
       setError('Failed to load jobs. Please try again.');
@@ -44,39 +52,58 @@ export default function JobsHub() {
     }
   }, []);
 
-  useEffect(() => { loadJobs(''); }, [loadJobs]);
+  useEffect(function() { loadJobs(''); }, [loadJobs]);
 
   // ── Filter jobs ──
-  const filtered = allJobs.filter(job => {
-    const cat = filters.category;
+  var filtered = allJobs.filter(function(job) {
+    // Category filter
+    var cat = filters.category;
     if (cat !== 'all') {
-      const match = job.categories?.includes(cat) || job.level === cat;
-      if (!match) return false;
+      var catMatch = (job.categories && job.categories.indexOf(cat) !== -1) || job.level === cat;
+      if (!catMatch) return false;
     }
-    if (filters.level?.length) {
-      if (!filters.level.includes(job.level)) return false;
+
+    // Level filter
+    if (filters.level && filters.level.length > 0) {
+      if (filters.level.indexOf(job.level) === -1) return false;
     }
-    if (filters.workType?.length) {
-      const wt = job.work_type?.toLowerCase();
-      const match = filters.workType.some(w =>
-        w === 'remote' ? job.remote : wt?.includes(w)
-      );
-      if (!match) return false;
+
+    // Work type filter
+    if (filters.workType && filters.workType.length > 0) {
+      var wtMatch = filters.workType.some(function(w) {
+        if (w === 'remote') return job.remote;
+        if (w === 'hybrid') return job.hybrid;
+        if (w === 'onsite') return !job.remote && !job.hybrid;
+        return false;
+      });
+      if (!wtMatch) return false;
     }
+
+    // Search query filter
+    if (filters.q) {
+      var q = filters.q.toLowerCase();
+      var text = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.location || '')).toLowerCase();
+      if (text.indexOf(q) === -1) return false;
+    }
+
     return true;
   });
 
-  const displayed = filtered.slice(0, page);
+  var displayed = filtered.slice(0, page);
 
   // ── Category counts ──
-  const counts = CATEGORIES.reduce((acc, c) => {
-    acc[c.key] = c.key === 'all'
-      ? allJobs.length
-      : allJobs.filter(j => j.categories?.includes(c.key) || j.level === c.key).length;
-    return acc;
-  }, {});
+  function countCat(key) {
+    if (key === 'all') return allJobs.length;
+    return allJobs.filter(function(j) {
+      return (j.categories && j.categories.indexOf(key) !== -1) || j.level === key;
+    }).length;
+  }
 
-  const handleSearch = () => loadJobs(searchInput);
+  function handleSearch() {
+    setFilter('q', searchInput);
+    if (searchInput) loadJobs(searchInput);
+    else loadJobs('');
+  }
 
   return (
     <div className="jobs-hub">
@@ -86,26 +113,33 @@ export default function JobsHub() {
         <div className="hero-top">
           <div>
             <h1 className="hero-title">
-              All Jobs Hub — <span>Live from the Web</span>
+              All Jobs Hub <span>— Freshers to Experienced</span>
             </h1>
             <p className="hero-sub">
               <span className="live-dot" style={{ marginRight: 6 }} />
-              Real-time jobs from RemoteOK · Jobicy · + More sources via backend crawler
+              Live jobs from Remotive · Internshala · Sarkari Naukri · NCS Portal · Adzuna India · More
             </p>
           </div>
           <div className="live-counts">
             <div>
-              <div className="lc-val accent">
+              <div className="lc-val" style={{ color: 'var(--accent)' }}>
                 {loading ? '...' : allJobs.length.toLocaleString()}
               </div>
               <div className="lc-lbl">Live jobs</div>
             </div>
-            <div className="divider-v" style={{ height: 36, margin: '0 12px' }} />
+            <div style={{ width: 1, height: 36, background: 'var(--line)', margin: '0 12px' }} />
             <div>
               <div className="lc-val" style={{ color: 'var(--warn)' }}>
-                {loading ? '...' : allJobs.filter(j => j.is_new).length}
+                {loading ? '...' : allJobs.filter(function(j) { return j.is_new; }).length}
               </div>
-              <div className="lc-lbl">Added today</div>
+              <div className="lc-lbl">New today</div>
+            </div>
+            <div style={{ width: 1, height: 36, background: 'var(--line)', margin: '0 12px' }} />
+            <div>
+              <div className="lc-val" style={{ color: 'var(--a2)' }}>
+                {loading ? '...' : allJobs.filter(function(j) { return j.is_indian; }).length}
+              </div>
+              <div className="lc-lbl">Indian jobs</div>
             </div>
           </div>
         </div>
@@ -118,47 +152,52 @@ export default function JobsHub() {
               className="input s-input"
               type="text"
               value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              placeholder="Search role, skill, company… e.g. 'Python developer' or 'React fresher'"
+              onChange={function(e) { setSearchInput(e.target.value); }}
+              onKeyDown={function(e) { if (e.key === 'Enter') handleSearch(); }}
+              placeholder="Search role, company, city… e.g. 'Python fresher Hyderabad' or 'SSC govt job'"
             />
           </div>
           <button className="btn btn-primary" onClick={handleSearch}>
-            {loading ? '...' : 'Search ↵'}
+            Search
           </button>
           <button
-            className={`btn ${showFilters ? 'btn-active' : ''}`}
-            onClick={() => setShowFilters(v => !v)}
+            className={'btn ' + (showFilters ? 'btn-active' : '')}
+            onClick={function() { setShowFilters(function(v) { return !v; }); }}
           >
-            ⚙ Filters {activeCount > 0 && <span className="filter-count">{activeCount}</span>}
+            Filters {activeCount > 0 && <span className="filter-count">{activeCount}</span>}
+          </button>
+          <button className="btn" onClick={function() { loadJobs(searchInput); }} title="Refresh jobs">
+            ↻
           </button>
         </div>
 
         {/* Source pills */}
         <div className="source-pills">
-          {SOURCES.map(src => (
-            <div key={src} className="src-pill on">
-              <span className="src-dot" />{src}
-            </div>
-          ))}
-          <div className="src-pill" style={{ color: 'var(--a3)', borderColor: 'rgba(255,107,53,.3)' }}>
-            + More via Python crawler →
-          </div>
+          {SOURCES_LIST.map(function(src) {
+            return (
+              <div key={src} className="src-pill on">
+                <span className="src-dot" />{src}
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* CATEGORY TABS */}
       <div className="cat-tabs">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.key}
-            className={`cat-tab ${filters.category === cat.key ? 'active' : ''}`}
-            onClick={() => setFilter('category', cat.key)}
-          >
-            {cat.label}
-            <span className="cat-count">{counts[cat.key] ?? '...'}</span>
-          </button>
-        ))}
+        {CATEGORIES.map(function(cat) {
+          var count = countCat(cat.key);
+          return (
+            <button
+              key={cat.key}
+              className={'cat-tab ' + (filters.category === cat.key ? 'active' : '')}
+              onClick={function() { setFilter('category', cat.key); }}
+            >
+              {cat.label}
+              <span className="cat-count">{loading ? '...' : count}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* FILTER BAR */}
@@ -178,61 +217,70 @@ export default function JobsHub() {
 
           {/* Sort row */}
           <div className="sort-row">
-            <div className="result-info mono text-sm muted">
+            <div className="mono text-sm muted">
               {loading
-                ? <span>Loading live jobs <span style={{ color: 'var(--accent)' }}>⟳</span></span>
-                : <><strong style={{ color: 'var(--text)' }}>{filtered.length.toLocaleString()}</strong> jobs found</>
+                ? 'Loading live jobs...'
+                : <span><strong style={{ color: 'var(--text)' }}>{filtered.length.toLocaleString()}</strong> jobs found</span>
               }
             </div>
             <div className="sort-btns">
-              {['AI Relevance','Newest'].map((s, i) => (
-                <button key={s} className={`sort-btn ${i === 0 ? 'on' : ''}`}>{s}</button>
-              ))}
+              <button className="sort-btn on">AI Relevance</button>
+              <button className="sort-btn">Newest</button>
+              <button className="sort-btn">Salary</button>
             </div>
           </div>
 
           {/* Error */}
           {error && (
             <div style={{ background: 'rgba(255,77,109,.1)', border: '1px solid rgba(255,77,109,.3)', borderRadius: 6, padding: '12px 16px', marginBottom: 16, fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--red)' }}>
-              {error} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => loadJobs('')}>Retry</span>
+              {error}
+              <span style={{ cursor: 'pointer', marginLeft: 12, textDecoration: 'underline' }} onClick={function() { loadJobs(''); }}>
+                Retry
+              </span>
             </div>
           )}
 
-          {/* Loading skeleton */}
+          {/* Loading */}
           {loading && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[1,2,3,4,5].map(i => (
-                <div key={i} style={{
-                  background: 'var(--bg1)', border: '1px solid var(--line)',
-                  borderRadius: 8, padding: '16px 18px', height: 120,
-                  animation: 'pulse 1.5s ease infinite',
-                  opacity: 1 - i * 0.15,
-                }} />
-              ))}
+              {[1,2,3,4,5].map(function(i) {
+                return (
+                  <div key={i} style={{
+                    background: 'var(--bg1)', border: '1px solid var(--line)',
+                    borderRadius: 8, height: 130,
+                    opacity: 1 - i * 0.15,
+                    animation: 'pulse 1.5s ease infinite',
+                  }} />
+                );
+              })}
             </div>
           )}
 
-          {/* Jobs */}
+          {/* Empty */}
           {!loading && displayed.length === 0 && (
             <div className="empty-state">
               <div className="empty-icon">⌕</div>
-              <div>No jobs found — try a different search or category</div>
-              <button className="btn btn-sm" onClick={() => { reset(); loadJobs(''); }}>
-                Clear & reload
+              <div>No jobs found — try different filters or search</div>
+              <button className="btn btn-sm" onClick={function() { reset(); loadJobs(''); }}>
+                Clear and reload
               </button>
             </div>
           )}
 
-          {!loading && displayed.map((job, i) => (
-            <JobCard key={job.id} job={job} style={{ animationDelay: `${i * 0.03}s` }} />
-          ))}
+          {/* Jobs */}
+          {!loading && displayed.map(function(job, i) {
+            return (
+              <JobCard key={job.id} job={job} style={{ animationDelay: (i * 0.03) + 's' }} />
+            );
+          })}
 
           {/* Load more */}
           {!loading && filtered.length > page && (
             <div className="load-more">
-              Showing <strong>{displayed.length}</strong> of <strong>{filtered.length}</strong> ·{' '}
-              <span className="accent" style={{ cursor: 'pointer' }} onClick={() => setPage(p => p + 20)}>
-                Load 20 more ↓
+              Showing <strong>{displayed.length}</strong> of <strong>{filtered.length}</strong>
+              <span className="accent" style={{ cursor: 'pointer', marginLeft: 8 }}
+                onClick={function() { setPage(function(p) { return p + 20; }); }}>
+                Load 20 more
               </span>
             </div>
           )}
@@ -242,133 +290,189 @@ export default function JobsHub() {
         <div className="right-col">
           <LiveStats jobs={allJobs} loading={loading} />
           <SourceStatus />
+          <SalaryInsights />
           <TrendingRoles jobs={allJobs} />
           <AlertSetup />
-          <BackendNotice />
         </div>
       </div>
     </div>
   );
 }
 
-// ── Right panel components ──
+function LiveStats(props) {
+  var jobs    = props.jobs;
+  var loading = props.loading;
 
-function LiveStats({ jobs, loading }) {
-  const cats = ['fresher','intern','it','data','nonit','senior'];
-  const labels = { fresher:'🟢 Fresher', intern:'🟣 Internships', it:'💻 IT/Software', data:'🤖 Data/AI', nonit:'📊 Non-IT', senior:'🔶 Senior' };
-  const colors = { fresher:'var(--accent)', intern:'var(--a2)', senior:'var(--a3)' };
+  var stats = [
+    { key: 'fresher', label: 'Fresher',      color: 'var(--accent)' },
+    { key: 'intern',  label: 'Internships',  color: 'var(--a2)'     },
+    { key: 'it',      label: 'IT/Software',  color: null            },
+    { key: 'data',    label: 'Data/AI',      color: null            },
+    { key: 'nonit',   label: 'Non-IT',       color: null            },
+    { key: 'govt',    label: 'Govt/PSU',     color: 'var(--warn)'   },
+  ];
 
   return (
     <div className="card r-panel">
       <div className="section-label" style={{ marginBottom: 12 }}>
-        <span className="live-dot" style={{ marginRight: 6 }} />
-        Live Counts
+        <span className="live-dot" style={{ marginRight: 6 }} />Live Counts
       </div>
       <div className="qs-grid">
-        {cats.map(c => (
-          <div key={c} className="qs-box">
-            <div className="qs-val" style={{ color: colors[c] || 'var(--text)' }}>
-              {loading ? '...' : jobs.filter(j => j.categories?.includes(c) || j.level === c).length}
+        {stats.map(function(s) {
+          var count = loading ? '...' : jobs.filter(function(j) {
+            return (j.categories && j.categories.indexOf(s.key) !== -1) || j.level === s.key;
+          }).length;
+          return (
+            <div key={s.key} className="qs-box">
+              <div className="qs-val" style={{ color: s.color || 'var(--text)' }}>{count}</div>
+              <div className="text-xs muted">{s.label}</div>
             </div>
-            <div className="text-xs muted">{labels[c]}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 function SourceStatus() {
-  const sources = [
-    { name: 'RemoteOK',    status: 'ok',   info: 'Live',      count: 'Unlimited' },
-    { name: 'Jobicy',      status: 'ok',   info: 'Live',      count: 'Unlimited' },
-    { name: 'LinkedIn',    status: 'soon', info: 'Crawler',   count: 'Backend'   },
-    { name: 'Naukri',      status: 'soon', info: 'Crawler',   count: 'Backend'   },
-    { name: 'Indeed',      status: 'soon', info: 'Crawler',   count: 'Backend'   },
-    { name: 'Internshala', status: 'soon', info: 'Crawler',   count: 'Backend'   },
-    { name: 'FreshersWorld',status:'soon', info: 'Crawler',   count: 'Backend'   },
+  var sources = [
+    { name: 'Remotive',       status: 'ok',   info: 'Live',    count: 'Remote' },
+    { name: 'The Muse',       status: 'ok',   info: 'Live',    count: 'Global' },
+    { name: 'Arbeitnow',      status: 'ok',   info: 'Live',    count: 'Tech'   },
+    { name: 'Internshala',    status: 'ok',   info: 'RSS',     count: 'India'  },
+    { name: 'Sarkari Naukri', status: 'ok',   info: 'RSS',     count: 'Govt'   },
+    { name: 'Adzuna India',   status: 'soon', info: 'API Key', count: 'India'  },
+    { name: 'NCS Portal',     status: 'soon', info: 'Backend', count: 'India'  },
+    { name: 'LinkedIn India',  status: 'soon', info: 'Backend', count: 'India' },
+    { name: 'Naukri.com',     status: 'soon', info: 'Backend', count: 'India'  },
   ];
-  const DOT = { ok: 'var(--accent)', soon: 'var(--warn)', err: 'var(--dim)' };
+
+  var DOT = { ok: 'var(--accent)', soon: 'var(--warn)', err: 'var(--dim)' };
+
   return (
     <div className="card r-panel">
       <div className="section-head">
         <span className="section-label">Source Status</span>
-        <span className="text-xs accent">2 live · 5 via backend</span>
+        <span className="text-xs accent">3 live · 6 coming</span>
       </div>
-      {sources.map(s => (
-        <div key={s.name} className="crawl-row">
-          <span className="text-sm">{s.name}</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: DOT[s.status], display: 'inline-block' }} />
-            <span className="text-xs muted">{s.info}</span>
-            <span className="text-xs mono" style={{ color: s.status === 'ok' ? 'var(--accent)' : 'var(--warn)' }}>{s.count}</span>
+      {sources.map(function(s) {
+        return (
+          <div key={s.name} className="crawl-row">
+            <span className="text-sm">{s.name}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: DOT[s.status], display: 'inline-block' }} />
+              <span className="text-xs muted">{s.info}</span>
+              <span className="text-xs mono" style={{ color: s.status === 'ok' ? 'var(--accent)' : 'var(--warn)' }}>{s.count}</span>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-function TrendingRoles({ jobs }) {
-  // Build role counts from live data
-  const roleCounts = {};
-  jobs.forEach(j => {
-    const words = j.title?.split(' ') || [];
-    words.forEach(w => {
-      if (w.length > 4) roleCounts[w] = (roleCounts[w] || 0) + 1;
-    });
-  });
-  const top = Object.entries(roleCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 7);
-  const max = top[0]?.[1] || 1;
+function SalaryInsights() {
+  var roles = [
+    { role: 'Fresher Dev',    min: '3.5', max: '6',  color: 'var(--accent)' },
+    { role: 'Junior Dev',     min: '6',   max: '12', color: 'var(--accent)' },
+    { role: 'Mid-level Dev',  min: '12',  max: '22', color: 'var(--a2)'     },
+    { role: 'Senior Dev',     min: '22',  max: '40', color: 'var(--a3)'     },
+    { role: 'Data Scientist', min: '8',   max: '25', color: 'var(--a2)'     },
+    { role: 'HR Fresher',     min: '3',   max: '5',  color: 'var(--warn)'   },
+    { role: 'Intern',         min: '10k', max: '25k/mo', color: 'var(--a2)' },
+  ];
 
   return (
     <div className="card r-panel">
-      <div className="section-label" style={{ marginBottom: 12 }}>Trending in Results</div>
-      {top.map(([role, count], i) => (
-        <div key={role} className="trend-row">
-          <span className="text-xs muted mono" style={{ width: 16 }}>{i + 1}</span>
-          <span className="text-sm" style={{ flex: 1 }}>{role}</span>
-          <div className="trend-bar">
-            <div className="trend-fill" style={{ width: `${(count / max) * 100}%` }} />
+      <div className="section-label" style={{ marginBottom: 12 }}>
+        Indian Salary Insights
+      </div>
+      {roles.map(function(r) {
+        return (
+          <div key={r.role} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
+            <span className="text-sm">{r.role}</span>
+            <span className="text-xs mono" style={{ color: r.color }}>
+              {r.min.includes('k') ? r.min + ' – ' + r.max : 'Rs.' + r.min + 'L – Rs.' + r.max + 'L'}
+            </span>
           </div>
-          <span className="text-xs muted mono">{count}</span>
-        </div>
-      ))}
+        );
+      })}
+      <div className="text-xs muted mono" style={{ marginTop: 8 }}>
+        Based on Indian market data 2024
+      </div>
+    </div>
+  );
+}
+
+function TrendingRoles(props) {
+  var jobs = props.jobs;
+
+  var roleCounts = {};
+  jobs.forEach(function(j) {
+    var words = (j.title || '').split(/\s+/);
+    words.forEach(function(w) {
+      if (w.length > 4 && !['with','that','this','from','into','have','your','will'].includes(w.toLowerCase())) {
+        roleCounts[w] = (roleCounts[w] || 0) + 1;
+      }
+    });
+  });
+
+  var top = Object.entries(roleCounts)
+    .sort(function(a, b) { return b[1] - a[1]; })
+    .slice(0, 7);
+
+  var max = top.length > 0 ? top[0][1] : 1;
+
+  return (
+    <div className="card r-panel">
+      <div className="section-label" style={{ marginBottom: 12 }}>Trending Today</div>
+      {top.map(function(entry, i) {
+        var role  = entry[0];
+        var count = entry[1];
+        return (
+          <div key={role} className="trend-row">
+            <span className="text-xs muted mono" style={{ width: 16 }}>{i + 1}</span>
+            <span className="text-sm" style={{ flex: 1 }}>{role}</span>
+            <div className="trend-bar">
+              <div className="trend-fill" style={{ width: (count / max * 100) + '%' }} />
+            </div>
+            <span className="text-xs muted mono">{count}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 function AlertSetup() {
-  const [sent, setSent] = useState(false);
+  var [sent, setSent] = useState(false);
+  var [email, setEmail] = useState('');
+  var [role, setRole] = useState('');
+
   return (
     <div className="alert-box">
       <div className="alert-title">
-        <span className="live-dot" /> Set Job Alert
+        <span className="live-dot" /> Job Alert
       </div>
-      <p className="alert-body">Get notified when matching jobs are posted.</p>
-      <input className="input" style={{ marginTop: 10 }} placeholder="e.g. Python Fresher Remote" />
-      <input className="input" style={{ marginTop: 6 }} type="email" placeholder="Your email" />
-      <button className="alert-btn" onClick={() => setSent(true)}>
-        {sent ? '✓ Alert set!' : '🔔 Create Alert'}
+      <p className="alert-body">Get notified when new matching jobs are posted.</p>
+      <input
+        className="input"
+        style={{ marginTop: 10 }}
+        placeholder="Role: e.g. Python Fresher"
+        value={role}
+        onChange={function(e) { setRole(e.target.value); }}
+      />
+      <input
+        className="input"
+        style={{ marginTop: 6 }}
+        type="email"
+        placeholder="Your email"
+        value={email}
+        onChange={function(e) { setEmail(e.target.value); }}
+      />
+      <button className="alert-btn" onClick={function() { if (email && role) setSent(true); }}>
+        {sent ? 'Alert set!' : 'Create Alert'}
       </button>
-    </div>
-  );
-}
-
-function BackendNotice() {
-  return (
-    <div style={{ background: 'rgba(124,111,255,.06)', border: '1px solid rgba(124,111,255,.2)', borderRadius: 8, padding: '14px 16px', marginTop: 12 }}>
-      <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--a2)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-        ⚡ Python Crawler — Coming Soon
-      </div>
-      <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.6 }}>
-        Naukri · LinkedIn · Indeed · Internshala · FreshersWorld · Company Career Pages — all via FastAPI backend deploying on Railway.
-      </p>
-      <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--a2)', marginTop: 8 }}>
-        10,000+ more jobs incoming ↑
-      </div>
     </div>
   );
 }
